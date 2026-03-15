@@ -20,7 +20,10 @@ mem, time_cost = simple_brainfuck.run(bf_program)
 # through memory_status，you can access the program memory space
 def input_hook(memory_status:dict[int, int]) -> int:
     import sys
-    return ord(sys.stdin.read(1)) % 256
+    try:
+        return ord(sys.stdin.read(1)) % 256
+    except:
+        return 255
 def output_book(memory_status:dict[int, int], c:int):
     print(chr(c), end="")
 simple_brainfuck.run(bf_program, input_hook=input_hook, output_hook=output_hook)
@@ -36,6 +39,9 @@ simple_brainfuck.run(bf_program, show_time=True)
 ## CLI Usage
 
 ```bash
+# run in CLI mode
+python3 -m simple_brainfuck
+
 # run file as program
 python3 -m simple_brainfuck <filepath.bf>
 

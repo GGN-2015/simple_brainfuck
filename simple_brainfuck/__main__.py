@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+import traceback
 
 from . import run
 
@@ -18,8 +19,24 @@ def main():
         else:
             filename_list.append(item)
 
+    if len(filename_list) == 0:
+        print("simple_brainfuck: CLI interface, Ctrl+C to exit")
+        running =True
+        mem = dict()
+        while running:
+            try:
+                cmd = input(">>> ").strip()
+                run(cmd, show_memory=True, show_time=True, initial_memory=mem)
+            except KeyboardInterrupt:
+                print("Bye.")
+                running = False
+
+            except Exception:
+                traceback.print_exc()
+        return
+        
     if len(filename_list) != 1:
-        raise ValueError("Please select at least one file.")
+        raise ValueError("Please select exact one file.")
     
     if not os.path.isfile(filename_list[0]):
         raise FileNotFoundError(filename_list[0])

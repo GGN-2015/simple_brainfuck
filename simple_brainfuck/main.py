@@ -1,8 +1,12 @@
 import sys
 import time
+from typing import Optional
 
 def default_in_hook(memory_status:dict[int, int]) -> int:
-    return ord(sys.stdin.read(1)) % 256
+    try:
+        return ord(sys.stdin.read(1)) % 256
+    except:
+        return 255
 
 def default_output_book(memory_status:dict[int, int], c:int):
     print(chr(c), end="")
@@ -64,7 +68,8 @@ def run(
         in_hook=default_in_hook, 
         out_hook=default_output_book, 
         show_memory=False, 
-        show_time=False) -> tuple[dict, float]:
+        show_time=False,
+        initial_memory:Optional[dict[int, int]]=None) -> tuple[dict, float]:
     
     if not isinstance(bf_program, str):
         raise TypeError("Brainfuck program must be a string.")
@@ -111,7 +116,13 @@ def run(
     
     begin_time = time.time()
     ptr = 0
-    mem = dict()
+
+    # 初始化内存空间
+    if initial_memory is None:
+        mem = dict()
+    else:
+        mem = initial_memory # 使用旧的内存空间
+
     program_ptr = 0
     while program_ptr < len(program_arr):
         cat_now, val_now = program_arr[program_ptr]
