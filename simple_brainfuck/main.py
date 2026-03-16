@@ -73,6 +73,7 @@ def run(
         show_time=False,
         initial_memory:Optional[dict[int, int]]=None) -> tuple[dict, float]:
     
+    pre_begin = time.time() # 记录预处理耗时
     if not isinstance(bf_program, str):
         raise TypeError("Brainfuck program must be a string.")
 
@@ -128,6 +129,7 @@ def run(
             match_pos[pos_stack.pop()] = i
     if len(pos_stack) != 0:
         raise ValueError("Unclosed bracket exists.")
+    pre_end = time.time() # 记录预处理耗时
     
     begin_time = time.time()
     io_time = 0
@@ -191,5 +193,6 @@ def run(
     if show_time:
         print(f"Time cost (ALL): {end_time - begin_time:.6f}s")
         print(f"Time cost (CPU): {end_time - begin_time - io_time:.6f}s")
+        print(f"Time cost (PRE): {pre_end  - pre_begin:.6f}s")
 
     return mem, end_time - begin_time
