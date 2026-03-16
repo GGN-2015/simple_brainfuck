@@ -3,13 +3,15 @@ import time
 from typing import Optional
 
 def default_in_hook(memory_status:dict[int, int]) -> int:
+    sys.stdout.flush()
+    sys.stderr.flush()
     try:
         return ord(sys.stdin.read(1)) % 256
     except:
         return 255
 
 def default_output_book(memory_status:dict[int, int], c:int):
-    print(chr(c), end="")
+    print(chr(c), end="", flush=True)
 
 def char_category(c:str) -> int:
     if c == "+" or c == '-': # add or sub
@@ -91,6 +93,19 @@ def run(
                 program_arr.pop()
                 program_arr.pop()
                 program_arr.append((new_cat, new_str))
+
+            if(
+                len(program_arr) >= 3 and
+                program_arr[-3][1] == "[" and 
+                (program_arr[-2][1] == "+" or program_arr[-2][1] == "-") and 
+                program_arr[-1][1] == "]" 
+            ):
+                new_cat = 7
+                new_str = "[%s]" % program_arr[-2][1] # 清空一个位置
+                program_arr.pop()
+                program_arr.pop()
+                program_arr.pop()
+                program_arr.append((new_cat, new_str))
     
     # 统计元素的出现次数
     for i in range(len(program_arr)):
@@ -115,6 +130,7 @@ def run(
         raise ValueError("Unclosed bracket exists.")
     
     begin_time = time.time()
+    io_time = 0
     ptr = 0
 
     # 初始化内存空间
@@ -129,25 +145,41 @@ def run(
         if cat_now == 1:
             safe_add(mem, ptr, val_now)
             program_ptr += 1
+
         elif cat_now == 2:
             ptr += val_now
             program_ptr += 1
+
         elif val_now == ",":
+            io_begin = time.time()
             safe_set(mem, ptr, in_hook(mem))
+            io_end = time.time()
+            io_time += io_end - io_begin
             program_ptr += 1
+
         elif val_now == ".":
+            io_begin = time.time()
             out_hook(mem, safe_get(mem, ptr))
+            io_end = time.time()
+            io_time += io_end - io_begin
             program_ptr += 1
+
         elif val_now == "[":
             if safe_get(mem, ptr) == 0:
                 program_ptr = match_pos[program_ptr] + 1
             else:
                 program_ptr += 1
+
         elif val_now == "]":
             if safe_get(mem, ptr) != 0:
                 program_ptr = match_pos[program_ptr] + 1
             else:
                 program_ptr += 1
+
+        elif val_now == "[-]" or val_now == "[+]":
+            safe_set(mem, ptr, 0)
+            program_ptr += 1
+        
         else:
             print(cat_now, val_now)
             raise AssertionError()
@@ -157,6 +189,7 @@ def run(
         print(f"Array status: ptr = {ptr}, {serialize_status(mem)}")
 
     if show_time:
-        print(f"Time cost: {end_time - begin_time:.6f}s")
+        print(f"Time cost (ALL): {end_time - begin_time:.6f}s")
+        print(f"Time cost (CPU): {end_time - begin_time - io_time:.6f}s")
 
     return mem, end_time - begin_time
